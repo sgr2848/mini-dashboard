@@ -42,7 +42,8 @@ const Body = styled.div`
 
 const Content = ({ currentIndex }) => {
   if (!currentIndex) return <OnBoarding />
-  if (currentIndex?.stats?.numberOfDocuments > 0) return <Results />
+  if (currentIndex?.stats?.numberOfDocuments > 0)
+    return <Results currentIndex={currentIndex} />
   return (
     <EmptyView buttonLink="https://docs.meilisearch.com/reference/api/documents.html">
       <Typography

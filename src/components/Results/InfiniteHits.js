@@ -2,11 +2,14 @@ import React from 'react'
 import styled from 'styled-components'
 import { connectInfiniteHits } from 'react-instantsearch-dom'
 // import ReactJson from 'react-json-view'
+import { MeiliSearch as Meilisearch } from 'meilisearch'
+import clientAgents from 'version/client-agents'
 
-// import { jsonTheme } from 'theme'
 import Button from 'components/Button'
 // import Card from 'components/Card'
 import ScrollToTop from 'components/ScrollToTop'
+
+import useLocalStorage from '../../hooks/useLocalStorage'
 
 import Hit from './Hit'
 
@@ -17,6 +20,11 @@ const HitsList = styled.ul`
     margin-top: 16px;
   }
 `
+const baseUrl =
+  process.env.REACT_APP_MEILI_SERVER_ADDRESS ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://0.0.0.0:7700'
+    : window.location.origin)
 
 const testImage = async (elem) => {
   // Test the standard way with regex and image extensions
@@ -42,22 +50,42 @@ const findImageKey = async (array) => {
   return imageField?.[0]
 }
 
-const InfiniteHits = connectInfiniteHits(({ hits, hasMore, refineNext }) => {
-  const [imageKey, setImageKey] = React.useState(false)
+const InfiniteHits = connectInfiniteHits(
+  ({ currentIndex, hits, hasMore, refineNext }) => {
+    const [imageKey, setImageKey] = React.useState(false)
+    // eslint-disable-next-line no-unused-vars
+    const [apiKey, setApiKey] = useLocalStorage('apiKey')
+    // eslint-disable-next-line no-unused-vars
+    const [MSClient, setMSClient] = React.useState('')
+    React.useEffect(async () => {
+      setImageKey(hits[0] ? await findImageKey(Object.entries(hits[0])) : null)
+    }, [hits[0]])
+    React.useEffect(async () => {
+      const cl = await new Meilisearch({
+        host: baseUrl,
+        apiKey,
+        clientAgents,
+      })
+      setMSClient(cl)
+    }, [])
 
-  React.useEffect(async () => {
-    setImageKey(hits[0] ? await findImageKey(Object.entries(hits[0])) : null)
-  }, [hits[0]])
-  // ({ hits, hasMore, refineNext, mode }) => {
-  return (
-    <div>
-      {/* {mode === 'fancy' ? ( */}
-      <HitsList>
-        {hits.map((hit, index) => (
-          <Hit key={index} hit={hit} imageKey={imageKey} />
-        ))}
-      </HitsList>
-      {/* ) : (
+    // ({ hits, hasMore, refineNext, mode }) => {
+    return (
+      <div>
+        {/* {mode === 'fancy' ? ( */}
+        <h3>Here is the list {currentIndex} </h3>
+        <HitsList>
+          {hits.map((hit, index) => (
+            <Hit
+              key={index}
+              idx={currentIndex}
+              hit={hit}
+              imageKey={imageKey}
+              client={MSClient}
+            />
+          ))}
+        </HitsList>
+        {/* ) : (
         <Card style={{ fontSize: 14, minHeight: 320 }}>
           <ReactJson
             src={hits}
@@ -70,19 +98,20 @@ const InfiniteHits = connectInfiniteHits(({ hits, hasMore, refineNext }) => {
           />
         </Card>
       )} */}
-      {hasMore && (
-        <Button
-          size="small"
-          variant="bordered"
-          onClick={refineNext}
-          style={{ margin: '0 auto', marginTop: 32 }}
-        >
-          Load more
-        </Button>
-      )}
-      <ScrollToTop />
-    </div>
-  )
-})
+        {hasMore && (
+          <Button
+            size="small"
+            variant="bordered"
+            onClick={refineNext}
+            style={{ margin: '0 auto', marginTop: 32 }}
+          >
+            Load more
+          </Button>
+        )}
+        <ScrollToTop />
+      </div>
+    )
+  }
+)
 
 export default InfiniteHits

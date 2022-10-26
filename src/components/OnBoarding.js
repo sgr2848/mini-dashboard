@@ -39,6 +39,7 @@ const OnBoardingCard = ({ number, title, icon, href, ...props }) => (
     >
       Learn more
     </Button>
+    <Button>Delete Me</Button>
   </Card>
 )
 

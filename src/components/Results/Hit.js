@@ -2,7 +2,6 @@ import React from 'react'
 import styled from 'styled-components'
 import ReactJson from 'react-json-view'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
-
 import { jsonTheme } from 'theme'
 import { DocumentMedium } from 'components/icons'
 import Button from 'components/Button'
@@ -178,9 +177,15 @@ const FieldValue = ({ value, hit, objectKey }) => {
   )
 }
 
-const Hit = ({ hit, imageKey }) => {
+const Hit = ({ hit, imageKey, client, idx }) => {
   const [displayMore, setDisplayMore] = React.useState(false)
   const documentProperties = Object.entries(hit._highlightResult)
+  const deleteData = async () => {
+    console.log(hit)
+    console.log('Deleting document with id: ', hit.id, ' from index: ', idx)
+    const id = await client.index(idx).deleteDocument(hit.id)
+    console.log(id)
+  }
   return (
     <CustomCard>
       <Box width={240} mr={4} flexShrink={0}>
@@ -228,6 +233,14 @@ const Hit = ({ hit, imageKey }) => {
           </Grid>
         )}
       </ContentContainer>
+      <Button
+        onClick={(e) => {
+          e.preventDefault()
+          deleteData()
+        }}
+      >
+        Delete
+      </Button>
     </CustomCard>
   )
 }

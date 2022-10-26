@@ -26,10 +26,10 @@ import NoResultForRequest from './NoResultForRequest'
 
 const ConnectedStats = connectStats((props) => <Stats {...props} />)
 
-const Results = connectStateResults(({ searchResults }) => {
+const Results = connectStateResults((props, { searchResults }) => {
   // const [mode, setMode] = useLocalStorage('mode', 'fancy')
   const hasResults = searchResults?.nbHits !== 0
-
+  console.log(props.currentIndex.uid)
   return (
     <>
       <Box
@@ -50,7 +50,11 @@ const Results = connectStateResults(({ searchResults }) => {
         /> */}
       </Box>
       {/* {hasResults ? <InfiniteHits mode={mode} /> : <NoResultForRequest />} */}
-      {hasResults ? <InfiniteHits /> : <NoResultForRequest />}
+      {hasResults ? (
+        <InfiniteHits currentIndex={props.currentIndex.uid} />
+      ) : (
+        <NoResultForRequest />
+      )}
     </>
   )
 })
